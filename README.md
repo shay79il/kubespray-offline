@@ -1,8 +1,9 @@
 # Kubespray offline file generator scripts
 
+
 ## What's this?
 
-This is offline support scripts for [Kubespray offline environment](https://kubespray.io/#/docs/offline-environment).
+This is offline support scripts for [Kubespray offline environment](https://kubespray.io/#/docs/operations/offline-environment).
 
 This supports:
 
@@ -18,8 +19,10 @@ This supports:
 
 ## Requirements
 
-- RHEL 8 / AlmaLinux 8
-- Ubuntu 20.04 / 22.04
+- RHEL / AlmaLinux / Rocky Linux : 9
+- Ubuntu 22.04 / 24.04
+
+Note: RHEL8 support is dropped from Kubespray 2.29.0.
 
 ## Download offline files
 
@@ -27,13 +30,12 @@ Note: You must execute this process on same OS of k8s target nodes.
 
 Before download offline files, check and edit configurations in `config.sh`.
 
-If you don't have container runtime (docker or containerd), install it first.
+The `podman` is automatically installed to pull and save container images.
+But you can use `containerd` instead of `podman`.
 
-* To use Docker CE
-    - run `install-docker.sh` to install Docker CE.
 * To use containerd
-    - run `install-containerd.sh` to install containerd and nerdctl.
-    - Set `docker` environment variable to `/usr/local/bin/nerdctl` in `config.sh`.
+    - Run `install-containerd.sh` to install containerd and nerdctl.
+    - Edit `config.sh` and change `docker` variable to nerdctl.
 
 Then, download all files:
 
@@ -44,7 +46,7 @@ All artifacts are stored in `./outputs` directory.
 This script calls all of following scripts.
 
 * prepare-pkgs.sh
-    - Setup python, etc.
+    - Setup python, podman, etc.
 * prepare-py.sh
     - Setup python venv, install required python packages.
 * get-kubespray.sh
@@ -92,23 +94,14 @@ You can configure port number of nginx and private registry in config.sh.
 Create and activate venv:
 
     # Example
-    $ python3 -m venv ~/.venv/default
-    $ source ~/.venv/default/bin/activate
-
-Note: For Ubuntu 20.04 and RHEL/CentOS 8, you need to use python 3.9.
-    
-    # Example
-    $ python3.9 -m venv ~/.venv/default
-    $ source ~/.venv/default/bin/activate
+    $ python3.11 -m venv ~/.venv/3.11
+    $ source ~/.venv/3.11/bin/activate
+    $ python --version   # check python version
 
 Extract kubespray and apply patches:
 
     $ ./extract-kubespray.sh
     $ cd kubespray-{version}
-
-For Ubuntu 22.04, you need to install build tools to build some python packages.
-
-    $ sudo apt install gcc python3-dev libffi-dev libssl-dev
 
 Install ansible:
 

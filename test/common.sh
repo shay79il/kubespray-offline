@@ -15,29 +15,11 @@ IPS=${IPS:-${INSTALLER_IP}}
 
 source /etc/os-release
 
-python3=python3
-if [ -e /etc/redhat-release ]; then
-    if [[ "$VERSION_ID" =~ ^7.* ]]; then
-        #PATH=/opt/rh/rh-python38/root/usr/bin:$PATH
-        #export PATH
-        echo "FATAL: RHEL/CentOS 7 is not supported"
-        exit 1
-    else
-        python3=python3.9
-    fi
-else
-    if [[ "$VERSION_ID" =~ ^20.* ]]; then
-        python3=python3.9
-    fi
-fi
-
-
 BASEDIR=$(cd $(dirname $0)/..; pwd)
 source $BASEDIR/config.sh
 source $BASEDIR/outputs/config.sh
 
 KUBESPRAY_TARBALL=kubespray-${KUBESPRAY_VERSION}.tar.gz
-VENV_DIR=${VENV_DIR:-~/.venv/default}
 
 cd $BASEDIR/test
 
@@ -45,13 +27,6 @@ prepare_pkgs() {
     if [ "${NAME}" = "Ubuntu" ] && [ "${VERSION_ID}" = "22.04" ]; then
         sudo apt install -y gcc python3-dev libffi-dev # libssl-dev
     fi
-}
-
-venv() {
-    if [ ! -d ${VENV_DIR} ]; then
-        $python3 -m venv ${VENV_DIR} || exit 1
-    fi
-    source ${VENV_DIR}/bin/activate
 }
 
 prepare_kubespray() {
@@ -69,6 +44,9 @@ prepare_kubespray() {
     pip install -U pip wheel || exit 1  # For RHEL/CentOS 7, because default pip is too old to build some packages.
     #pip install -U setuptools # update to latest version
     pip install -r requirements.txt || exit 1
+
+    # For inventory builder
+    pip install ruamel.yaml
 }
 
 configure_kubespray() {
@@ -95,7 +73,7 @@ configure_kubespray() {
         cp "$BASEDIR/test/$INVENTORY" inventory/mycluster/hosts.yaml
     else
         echo "===> Generate inventory"
-        CONFIG_FILE=inventory/mycluster/hosts.yaml python3 contrib/inventory_builder/inventory.py $IPS || exit 1
+        CONFIG_FILE=inventory/mycluster/hosts.yaml python3 ${BASEDIR}/test/inventory_builder/inventory.py $IPS || exit 1
 
         #echo "CONFIG_FILE=inventory/mycluster/hosts.yaml python3 contrib/inventory_builder/inventory.py $IPS" >builder.sh
         #/usr/local/bin/ansible-container.sh bash builder.sh

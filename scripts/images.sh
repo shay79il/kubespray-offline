@@ -13,10 +13,28 @@ get_image() {
 
     if [ ! -e $IMAGES_DIR/$zipname ]; then
         echo "==> Pull $image"
-        $sudo $docker pull $image || exit 1
+
+        max_retries=3
+        retry_delay=3
+        attempt=0
+        success=false
+
+        while [ $attempt -lt $max_retries ]; do
+            echo $sudo $docker pull $image
+            $sudo $docker pull $image && success=true && break
+            attempt=$((attempt + 1))
+            echo "Attempt $attempt/$max_retries failed. Retrying in $retry_delay seconds..."
+            sleep $retry_delay
+        done
+
+        if [ "$success" = false ]; then
+            echo "Failed to pull $image after $max_retries attempts."
+            exit 1
+        fi
 
         echo "==> Save $image"
-        $sudo $docker save -o $IMAGES_DIR/$tarname $image
+        echo $sudo $docker save -o $IMAGES_DIR/$tarname $image
+        $sudo $docker save -o $IMAGES_DIR/$tarname $image || exit 1
         $sudo chown $(whoami) $IMAGES_DIR/$tarname
         chmod 0644 $IMAGES_DIR/$tarname
         gzip -v $IMAGES_DIR/$tarname

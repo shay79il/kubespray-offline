@@ -1,8 +1,6 @@
 #!/bin/bash
 
+cd $(dirname $0)
 source ./common.sh
 
-CMD="cd ${WORKDIR} && ./download-kubespray-files.sh"
-
-#docker run -it --rm -v ${ROOT}:${WORKDIR} kubespray-offline-cent8:latest /bin/bash -c "${CMD}"
-docker run -it --rm ${VOLUMES} tmurakam/kubespray-offline-ubuntu-22.04:latest /bin/bash -c "${CMD}"
+run_in_docker "./prepare-py.sh && ./pypi-mirror.sh && SKIP_DOWNLOAD_IMAGES=true ./download-kubespray-files.sh"

@@ -29,12 +29,6 @@ download() {
 }
 
 if $ENABLE_DOWNLOAD; then
-    # TODO: These version must be same as kubespray. Refer `roles/kubespray-defaults/defaults/main/download.yml` of kubespray.
-    RUNC_VERSION=1.1.10
-    CONTAINERD_VERSION=1.7.11
-    NERDCTL_VERSION=1.7.1
-    CNI_VERSION=1.3.0
-
     download https://github.com/opencontainers/runc/releases/download/v${RUNC_VERSION}/runc.amd64 runc/v${RUNC_VERSION}
     download https://github.com/containerd/containerd/releases/download/v${CONTAINERD_VERSION}/containerd-${CONTAINERD_VERSION}-linux-amd64.tar.gz
     download https://github.com/containerd/nerdctl/releases/download/v${NERDCTL_VERSION}/nerdctl-${NERDCTL_VERSION}-linux-amd64.tar.gz
@@ -52,19 +46,32 @@ select_latest() {
     echo $latest
 }
 
+check_file() {
+    if [ ! -e $1 ]; then
+        echo "FATAL ERROR: No such file: $1"
+        exit 1
+    fi
+}
+
 # Install runc
 echo "==> Install runc"
-sudo cp $(select_latest "${FILES_DIR}/runc/v*/runc.amd64") /usr/local/bin/runc
+file="${FILES_DIR}/runc/v${RUNC_VERSION}/runc.amd64"
+check_file $file
+sudo cp "$file" /usr/local/bin/runc
 sudo chmod 755 /usr/local/bin/runc
 
 # Install nerdctl
 echo "==> Install nerdctl"
-tar xvf $(select_latest "${FILES_DIR}/nerdctl-*-linux-amd64.tar.gz") -C /tmp
+file="${FILES_DIR}/nerdctl-${NERDCTL_VERSION}-linux-amd64.tar.gz"
+check_file "$file"
+tar xvf "$file" -C /tmp
 sudo cp /tmp/nerdctl /usr/local/bin
 
 # Install containerd
 echo "==> Install containerd"
-sudo tar xvf $(select_latest "${FILES_DIR}/containerd-*-linux-amd64.tar.gz") --strip-components=1 -C /usr/local/bin
+file="${FILES_DIR}/containerd-${CONTAINERD_VERSION}-linux-amd64.tar.gz"
+check_file "$file"
+sudo tar xvf "$file" --strip-components=1 -C /usr/local/bin
 sudo cp ./containerd.service /etc/systemd/system/
 
 sudo mkdir -p \
@@ -82,4 +89,6 @@ sudo systemctl enable --now containerd
 # Install cni plugins
 echo "==> Install CNI plugins"
 sudo mkdir -p /opt/cni/bin
-sudo tar xvzf $(select_latest "${FILES_DIR}/kubernetes/cni/cni-plugins-linux-amd64-v*.tgz") -C /opt/cni/bin
+file="${FILES_DIR}/kubernetes/cni/cni-plugins-linux-amd64-v${CNI_VERSION}.tgz"
+check_file "$file"
+sudo tar xvzf "$file" -C /opt/cni/bin

@@ -1,7 +1,57 @@
 # ChangeLogs
 
+## develop
+
+## v2.29.0-0 - 2025/10/26
+
+- Update kubespray 2.29.0
+- Drop support of RHEL8 family
+- Update Nginx to 1.29.2
+
+## v2.28.1-0 - 2025/09/03
+
+- Update kubespray 2.28.1
+
+## v2.28.0-0 - 2025/05/24
+
+- Update kubespray 2.28.0
+- Fix offline.yml to add 'v' version prefix in download URLs for kubespray 2.28
+- Add some download URLs including cilium (#22)
+- Update Nginx to 1.28.0
+- Update registry server to 2.8.3
+
+## v2.27.0-0 - 2025/01/12
+
+- Update kubespray to 2.27.0
+- Update nginx: 1.25.2 -> 1.27.3
+- Minor bug fixes
+
+## v2.26.0-0 - 2024/09/11
+
+- Update kubespray to 2.26.0
+- Add lacked ruamel.yaml package for inventory builder
+
+## v2.25.0-0 - 2024/05/21
+
+- Update kubespray to 2.25.0
+- Add initial support of Ubuntu 24.04
+- Update Python to 3.11 or later for Kubespray 2.25 and Ansible 9.5
+- Add PPA for latest Python on Ubuntu 20.04
+- Mirror binary packages of Ansible
+- Remove unused development packages
+- Add venv.sh in target-scripts
+
+## v2.24.1-1 - 2024/04/17
+
+- Fix: Use podman to download container images (#36)
+
+## v2.24.1-0 - 2024/04/12
+
+- Update kubespray to 2.24.1
+- Fix downloading older container images using nerdctl (#35)
+
 ## v2.24.0-0 - 2024/01/20
-- 
+
 - Update kubespray to 2.24.0
 
 ## v2.23.1-0 - 2024/01/04

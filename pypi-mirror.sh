@@ -9,15 +9,12 @@ if [ ! -e $KUBESPRAY_DIR ]; then
 fi
 
 source /etc/os-release
-source ./scripts/select-python.sh
 
-VENV_DIR=${VENV_DIR:-~/.venv/default}
-if [ ! -e ${VENV_DIR} ]; then
-    $python3 -m venv ${VENV_DIR}
-fi
-source ${VENV_DIR}/bin/activate
+source ./target-scripts/venv.sh
 
 source ./scripts/set-locale.sh
+
+umask 022
 
 echo "==> Create pypi mirror for kubespray"
 #set -x
@@ -28,9 +25,12 @@ PLATFORM="--platform manylinux2014_x86_64"  # PEP-599
 #PLATFORM="--platform manylinux_2_17_x86_64"  # PEP-600
 
 REQ=requirements.tmp
-sed "s/^ansible/#ansible/" ${KUBESPRAY_DIR}/requirements.txt > $REQ  # Ansible does not provide binary packages
+#sed "s/^ansible/#ansible/" ${KUBESPRAY_DIR}/requirements.txt > $REQ  # Ansible does not provide binary packages
+cp ${KUBESPRAY_DIR}/requirements.txt $REQ
 echo "PyYAML" >> $REQ  # Ansible dependency
-for pyver in 3.9 3.10; do
+echo "ruamel.yaml" >> $REQ # Inventory builder
+
+for pyver in 3.11 3.12; do
     echo "===> Download binary for python $pyver"
     pip download $DEST --only-binary :all: --python-version $pyver $PLATFORM -r $REQ || exit 1
 done
