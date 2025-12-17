@@ -11,3 +11,4 @@ cache/
 venv/
 system_config.yaml
 .vscode/
+.DS_Store
