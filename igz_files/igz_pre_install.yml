@@ -1,3 +1,20 @@
+- name: Add API server load balancer to /etc/hosts
+  hosts: all
+  become: true
+  tasks:
+    - name: Add load balancer entry to /etc/hosts
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        regexp: ".*{{ apiserver_loadbalancer_domain_name }}$"
+        line: "{{ loadbalancer_apiserver.address }} {{ apiserver_loadbalancer_domain_name }}"
+        state: present
+        create: no
+      when:
+        - not (skip_hosts_update | default(false))
+        - loadbalancer_apiserver is defined
+        - loadbalancer_apiserver.address is defined
+        - apiserver_loadbalancer_domain_name is defined
+
 - name: Prepare containers
   hosts: k8s_clients
   tasks:
