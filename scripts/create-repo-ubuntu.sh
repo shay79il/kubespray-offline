@@ -34,12 +34,12 @@ if [ -e $DEBDIR ]; then
 fi
 mkdir -p $DEBDIR/pkgs
 /bin/cp $CACHEDIR/* $DEBDIR/pkgs
-/bin/rm $DEBDIR/pkgs/*i386.deb
+/bin/rm -f $DEBDIR/pkgs/*i386.deb
 
 pushd $DEBDIR || exit 1
 apt-ftparchive sources . > Sources && gzip -c9 Sources > Sources.gz
 apt-ftparchive packages . > Packages && gzip -c9 Packages > Packages.gz
-apt-ftparchive contents . > Contents-amd64 && gzip -c9 Contents-amd64 > Contents-amd64.gz
+apt-ftparchive contents . > Contents-$(dpkg --print-architecture) && gzip -c9 Contents-$(dpkg --print-architecture) > Contents-$(dpkg --print-architecture).gz
 apt-ftparchive release . > Release
 popd
 

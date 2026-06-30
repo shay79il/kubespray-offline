@@ -1,5 +1,9 @@
 #!/bin/bash
 
+if [ "$SKIP_DOWNLOAD_IMAGES" = "true" ]; then
+    exit 0
+fi
+
 echo "==> Pull additional container images"
 
 umask 022

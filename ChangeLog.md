@@ -1,6 +1,28 @@
 # ChangeLogs
 
-## develop
+## v2.31.0-0 - 2026/04/25
+
+- Update kubespray 2.31.0
+- Update offline.yml for kubespray 2.31.0
+- Update Nginx to 1.30.0
+- Update registry server to 3.1.0
+- Improve script files
+
+## v2.30.0-0 - 2026/02/01
+
+- Update kubespray 2.30.0
+- Update registry server to 3.0.0
+- Update Nginx to 1.29.4
+
+## v2.29.1-1 - 2026/01/24
+
+- Fix: Support RHEL system architecture detection in config.sh (#69)
+
+## v2.29.1-0 - 2025/12/17
+
+- Update kubespray 2.29.1
+- Fix docker.io/library image name (#67)
+- Support arm64 (#68)
 
 ## v2.29.0-0 - 2025/10/26
 

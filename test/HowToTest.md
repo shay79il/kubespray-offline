@@ -2,16 +2,26 @@
 
 You can run a single VM test with `FULL-TEST-SINGLE.sh`.
 
-## Preparation
+## Phase 1: Preparation
+
+Download all offline files to local disk using Docker.
+
+    $ ../cleanup.sh
+    $ ../docker/download-all.sh ubuntu24
+
+Note: Vagrant with libvirt will not work because synced_folder supports only one-way sync of rsync.
+
+## Phase 2: Deploy test
+
+Destroy and re-create the cluster using vagrant.
 
 Start up cluster using vagrant. The Vagrantfile exists in `vagrant/singles` or `vagrant/cluster`.
 
-Login to the installer node (VM), run `install-docker.sh` and `download-all.sh`
-download all offline files.
+For ubuntu 24.04:
 
-## Deploy test
-
-Destroy and re-create the cluster using vagrant.
+    $ cd vagrant/singles
+    $ vagrant destroy -f
+    $ vagrant up ubuntu24
 
 ### Single node test
 

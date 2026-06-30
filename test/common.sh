@@ -16,8 +16,10 @@ IPS=${IPS:-${INSTALLER_IP}}
 source /etc/os-release
 
 BASEDIR=$(cd $(dirname $0)/..; pwd)
-source $BASEDIR/config.sh
-source $BASEDIR/outputs/config.sh
+
+cd $BASEDIR
+source ./config.sh
+source ./outputs/config.sh
 
 KUBESPRAY_TARBALL=kubespray-${KUBESPRAY_VERSION}.tar.gz
 

@@ -23,7 +23,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ ubuntu-22.04 ]
+        os: [ ubuntu-24.04 ]
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -55,12 +55,12 @@ jobs:
       #    path: outputs/
 
   ci-docker:
-    name: Test in docker for ${{ matrix.os }}
-    runs-on: ubuntu-22.04
+    name: Test in docker for ${{ matrix.target }}
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
-        os: [ rocky9, rocky10, ubuntu-22.04, ubuntu-24.04 ]
+        target: [ rocky9, rocky10, ubuntu22, ubuntu24 ]
 
     steps:
       - uses: actions/checkout@v4
@@ -70,8 +70,8 @@ jobs:
       - name: Prepare packages
         run: ./prepare-pkgs.sh
       - name: Create container image
-        run: ./docker/build-image.sh ${{ matrix.os }}
+        run: ./docker/build-image.sh ${{ matrix.target }}
       - name: Download in container
-        run: ./docker/download-for-ci-in-docker.sh ${{ matrix.os }}
+        run: ./docker/download-for-ci-in-docker.sh ${{ matrix.target }}
       - name: Run ci-tests.sh in container
-        run: ./docker/ci-test-in-docker.sh ${{ matrix.os }}
+        run: ./docker/ci-test-in-docker.sh ${{ matrix.target }}
