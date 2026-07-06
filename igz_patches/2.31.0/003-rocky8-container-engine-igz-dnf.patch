@@ -1,0 +1,43 @@
+--- a/roles/container-engine/runc/tasks/main.yml	2026-04-24 07:16:46
++++ b/roles/container-engine/runc/tasks/main.yml	2026-07-02 23:38:41
+@@ -17,10 +17,16 @@
+     - ansible_distribution != "Flatcar Container Linux by Kinvolk"
+     - ansible_distribution != "Flatcar"
+   block:
++    - name: Runc | Remove package (EL8 igz_dnf)
++      igz_dnf:
++        name: "{{ runc_package_name }}"
++        state: absent
++      when: ansible_os_family == "RedHat" and ansible_distribution_major_version | int == 8
+     - name: Runc | Remove package
+       package:
+         name: "{{ runc_package_name }}"
+         state: absent
++      when: not (ansible_os_family == "RedHat" and ansible_distribution_major_version | int == 8)
+     - name: Runc | Remove orphaned binary
+       file:
+         path: /usr/bin/runc
+--- a/roles/container-engine/skopeo/tasks/main.yml	2026-04-24 07:16:46
++++ b/roles/container-engine/skopeo/tasks/main.yml	2026-07-02 23:38:41
+@@ -11,11 +11,21 @@
+   set_fact:
+     is_ostree: "{{ ostree.stat.exists }}"
+ 
++- name: Skopeo | Uninstall skopeo package (EL8 igz_dnf)
++  igz_dnf:
++    name: skopeo
++    state: absent
++  when:
++    - ansible_os_family == "RedHat" and ansible_distribution_major_version | int == 8
++    - not (is_ostree or (ansible_distribution == "Flatcar Container Linux by Kinvolk") or (ansible_distribution == "Flatcar"))
++  ignore_errors: true
++
+ - name: Skopeo | Uninstall skopeo package managed by package manager
+   package:
+     name: skopeo
+     state: absent
+   when:
++    - not (ansible_os_family == "RedHat" and ansible_distribution_major_version | int == 8)
+     - not (is_ostree or (ansible_distribution == "Flatcar Container Linux by Kinvolk") or (ansible_distribution == "Flatcar"))
+   ignore_errors: true  # noqa ignore-errors
+ 

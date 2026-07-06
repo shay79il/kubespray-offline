@@ -1,0 +1,98 @@
+--- a/roles/kubernetes/preinstall/tasks/0080-system-configurations.yml	2026-04-24 07:16:46
++++ b/roles/kubernetes/preinstall/tasks/0080-system-configurations.yml	2026-07-02 23:34:38
+@@ -11,6 +11,33 @@
+     - "'Amazon' not in ansible_distribution"
+   register: slc
+ 
++- name: Set selinux policy (EL8 raw)
++  ansible.builtin.raw: |
++    set -e
++    case "{{ preinstall_selinux_state }}" in
++      enforcing) setenforce 1 2>/dev/null || true; mode=enforcing ;;
++      permissive) setenforce 0 2>/dev/null || true; mode=permissive ;;
++      disabled|*) setenforce 0 2>/dev/null || true; mode=disabled ;;
++    esac
++    if grep -q '^SELINUX=' /etc/selinux/config; then
++      sed -i "s/^SELINUX=.*/SELINUX=${mode}/" /etc/selinux/config
++    else
++      echo "SELINUX=${mode}" >> /etc/selinux/config
++    fi
++    if grep -q '^SELINUXTYPE=' /etc/selinux/config; then
++      sed -i 's/^SELINUXTYPE=.*/SELINUXTYPE=targeted/' /etc/selinux/config
++    else
++      echo 'SELINUXTYPE=targeted' >> /etc/selinux/config
++    fi
++  args:
++    executable: /bin/bash
++  when:
++    - ansible_os_family == "RedHat" and ansible_distribution_major_version | int == 8
++    - "'Amazon' not in ansible_distribution"
++    - slc.stat.exists
++  tags:
++    - bootstrap_os
++
+ - name: Set selinux policy
+   ansible.posix.selinux:
+     policy: targeted
+@@ -19,6 +46,7 @@
+     - ansible_os_family == "RedHat"
+     - "'Amazon' not in ansible_distribution"
+     - slc.stat.exists
++    - not (ansible_os_family == "RedHat" and ansible_distribution_major_version | int == 8)
+   tags:
+     - bootstrap_os
+ 
+--- a/roles/kubernetes/preinstall/tasks/0081-ntp-configurations.yml	2026-04-24 07:16:46
++++ b/roles/kubernetes/preinstall/tasks/0081-ntp-configurations.yml	2026-07-02 23:34:38
+@@ -81,11 +81,21 @@
+     - ntp_timezone
+     - ansible_os_family == "RedHat"
+ 
++- name: Put SELinux in permissive mode (EL8 raw)
++  ansible.builtin.raw: setenforce 0 2>/dev/null || true
++  changed_when: false
++  when:
++    - ansible_os_family == "RedHat" and ansible_distribution_major_version | int == 8
++    - ntp_timezone
++    - ansible_facts.selinux.status == 'enabled'
++    - ansible_facts.selinux.mode == 'enforcing'
++
+ - name: Put SELinux in permissive mode, logging actions that would be blocked.
+   ansible.posix.selinux:
+     policy: targeted
+     state: permissive
+   when:
++    - not (ansible_os_family == "RedHat" and ansible_distribution_major_version | int == 8)
+     - ntp_timezone
+     - ansible_os_family == "RedHat"
+     - ansible_facts.selinux.status == 'enabled'
+@@ -97,11 +107,29 @@
+   when:
+     - ntp_timezone
+ 
++- name: Re-enable SELinux (EL8 raw)
++  ansible.builtin.raw: |
++    set -e
++    case "{{ preinstall_selinux_state }}" in
++      enforcing) setenforce 1 2>/dev/null || true; mode=enforcing ;;
++      permissive) setenforce 0 2>/dev/null || true; mode=permissive ;;
++      disabled|*) setenforce 0 2>/dev/null || true; mode=disabled ;;
++    esac
++    sed -i "s/^SELINUX=.*/SELINUX=${mode}/" /etc/selinux/config
++  args:
++    executable: /bin/bash
++  changed_when: false
++  when:
++    - ansible_os_family == "RedHat" and ansible_distribution_major_version | int == 8
++    - ntp_timezone
++    - ansible_facts.selinux.status == 'enabled'
++
+ - name: Re-enable SELinux
+   ansible.posix.selinux:
+     policy: targeted
+     state: "{{ preinstall_selinux_state }}"
+   when:
++    - not (ansible_os_family == "RedHat" and ansible_distribution_major_version | int == 8)
+     - ntp_timezone
+     - ansible_os_family == "RedHat"
+     - ansible_facts.selinux.status == 'enabled'

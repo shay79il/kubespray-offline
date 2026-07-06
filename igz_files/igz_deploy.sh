@@ -61,6 +61,11 @@ cp ../igz_inventory.ini ./inventory/igz
 echo "==> Copy Iguazio files"
 find ../ -maxdepth 1 -type f -name 'igz_*' -exec cp '{}' . ';'
 
+# Copy custom ansible modules (Rocky 8 igz_dnf)
+if [[ -d ../library ]]; then
+  cp ../library/*.py ./library/
+fi
+
 # Copy playbook for offline repo
 cp -r ../playbook .
 

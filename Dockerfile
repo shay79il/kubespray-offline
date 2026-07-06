@@ -5,5 +5,12 @@ RUN dnf config-manager --add-repo https://download.docker.com/linux/centos/docke
 RUN dnf install -y docker-ce docker-ce-cli containerd.io findutils which sudo
 
 COPY . .
-RUN mv /igz_files/* .
+RUN for item in /igz_files/*; do \
+      name=$(basename "$item"); \
+      if [ "$name" = "library" ] && [ -d ./library ]; then \
+        cp -r "$item"/. ./library/; \
+      else \
+        mv "$item" .; \
+      fi; \
+    done
 ENTRYPOINT ["/igz_make_offline.sh"]

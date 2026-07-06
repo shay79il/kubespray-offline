@@ -1,5 +1,5 @@
 # Your dream is to override only this when bumping k8s for on-prem deployment
-kube_version: 1.33.5
+kube_version: 1.35.4
 
 # These are filled by the igz_inventory_builder.py script
 registry_host: "{{ igz_registry_host }}:{{ igz_registry_port }}"
@@ -95,14 +95,8 @@ kubeadm_ignore_preflight_errors:
   - SystemVerification
 
 # Override containerd version for Rocky 8 GLIBC compatibility
-# Upstream Kubespray 2.29.0 uses containerd 2.1.4 (requires GLIBC 2.34)
+# Upstream Kubespray 2.31.0 uses containerd 2.2.3 (requires GLIBC 2.34+)
 # Rocky 8 ships with GLIBC 2.28, causing runtime errors
-# Downgrade to containerd 2.0.5 which only requires GLIBC 2.4
+# Pin containerd 2.0.5 which runs on GLIBC 2.28 (also set in target-scripts/config.sh via 2.31.0-pre patch)
 containerd_version: "2.0.5"
-
-# Override Ansible version requirements for compatibility
-# Upstream Kubespray 2.29.0 requires ansible-core 2.17.3-2.18.0
-# Downgrade to allow ansible-core 2.15.0+ (Ansible 9.x) for stability
-minimal_ansible_version: "2.15.0"
-maximal_ansible_version: "2.19.0"
 

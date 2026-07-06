@@ -20,9 +20,12 @@ crictl_download_url: "{{ files_repo }}/kubernetes/cri-tools/crictl-v{{ crictl_ve
 # If using Calico
 calicoctl_download_url: "{{ files_repo }}/kubernetes/calico/v{{ calico_ctl_version }}/calicoctl-linux-{{ image_arch }}"
 # If using Calico with kdd
-calico_crds_download_url: "{{ files_repo }}/kubernetes/calico/v{{ calico_version }}.tar.gz"
+calico_crds_download_url: "{{ files_repo }}/kubernetes/calico/crds.yaml"
 
 runc_download_url: "{{ files_repo }}/runc/v{{ runc_version }}/runc.{{ image_arch }}"
 nerdctl_download_url: "{{ files_repo }}/nerdctl-{{ nerdctl_version }}-{{ ansible_system | lower }}-{{ image_arch }}.tar.gz"
 containerd_download_url: "{{ files_repo }}/containerd-{{ containerd_version }}-linux-{{ image_arch }}.tar.gz"
+
+# Rocky 8: use igz_dnf module path in patched Kubespray roles
+el8_igz_dnf: "{{ ansible_os_family == 'RedHat' and ansible_distribution_major_version | int == 8 }}"
 

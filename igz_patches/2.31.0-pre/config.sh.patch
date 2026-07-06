@@ -1,0 +1,14 @@
+diff --git a/target-scripts/config.sh b/target-scripts/config.sh
+index 4b8932c..09992d2 100644
+--- a/target-scripts/config.sh
++++ b/target-scripts/config.sh
+@@ -6,7 +6,7 @@ KUBESPRAY_VERSION=${KUBESPRAY_VERSION:-2.31.0}
+ # Versions of containerd related binaries used in `install-containerd.sh`
+ # These version must be same as kubespray.
+ # Refer `roles/kubespray_defaults/vars/main/checksums.yml` of kubespray.
+ RUNC_VERSION=1.4.2
+-CONTAINERD_VERSION=2.2.3
++CONTAINERD_VERSION=2.0.5
+ NERDCTL_VERSION=2.2.2
+ CNI_VERSION=1.9.1
+ 

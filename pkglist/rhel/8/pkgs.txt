@@ -1,6 +1,6 @@
 # RHEL8 specific
 
-# python3
+# python3 (control/build nodes)
 python3.11
 python3.11-pip
 python3.11-devel

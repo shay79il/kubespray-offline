@@ -21,6 +21,17 @@ fi
 ./prepare-pkgs.sh
 ./prepare-py.sh
 ./get-kubespray.sh
+
+# Custom Ansible modules live in igz_files/library (not in the kubespray patch bundle)
+if [[ -d ./library ]]; then
+  mkdir -p "${KUBESPRAY_DIR}/library"
+  cp ./library/*.py "${KUBESPRAY_DIR}/library/"
+  KUBESPRAY_TARBALL="kubespray-${KUBESPRAY_VERSION}.tar.gz"
+  if [[ -f "outputs/files/${KUBESPRAY_TARBALL}" ]]; then
+    tar czf "outputs/files/${KUBESPRAY_TARBALL}" -C ./cache "kubespray-${KUBESPRAY_VERSION}"
+  fi
+fi
+
 ./pypi-mirror.sh
 ./download-kubespray-files.sh
 ./create-repo.sh
@@ -32,6 +43,10 @@ cp $KUBESPRAY_DIR/requirements.txt .
 
 echo "===> Fetch Iguazio scripts"
 find . -path './proc' -prune -o -path './sys' -prune -o -type f -name "igz_*" -exec cp {} /outputs/ \;
+
+if [[ -d ./library ]]; then
+  cp -r ./library /outputs/
+fi
 
 chown -R 1000:1000 /outputs
 

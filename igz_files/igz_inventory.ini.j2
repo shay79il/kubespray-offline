@@ -6,6 +6,8 @@ k8s-node{{ loop.index }} ansible_host={{ node.mgmt_ip_address }} ansible_user={{
 
 [all:vars]
 iguazio_version = {{ iguazio_version }}
+# Rocky 8 + Ansible 11: python3.9 (Kubespray uses igz_dnf module for package tasks on EL8)
+ansible_python_interpreter=/usr/bin/python3.9
 
 [kube_control_plane]
 {% if app_nodes|length < 3 %}

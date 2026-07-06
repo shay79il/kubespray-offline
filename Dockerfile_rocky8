@@ -9,5 +9,12 @@ RUN dnf install -y findutils which sudo patch wget rust --allowerasing --nobest
 RUN wget --no-check-certificate https://artifactory.iguazeng.com/artifactory/iguazio-devops_virtual/opt_packages/skopeo-1.14.0.tar.gz && tar -zxf skopeo-1.14.0.tar.gz -C /usr/bin
 
 ADD . .
-RUN mv /igz_files/* .
+RUN for item in /igz_files/*; do \
+      name=$(basename "$item"); \
+      if [ "$name" = "library" ] && [ -d ./library ]; then \
+        cp -r "$item"/. ./library/; \
+      else \
+        mv "$item" .; \
+      fi; \
+    done
 ENTRYPOINT ["/igz_make_offline.sh"]

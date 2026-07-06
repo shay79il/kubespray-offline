@@ -14,16 +14,54 @@ def runContainer(distro, tag) {
     common.shell(['podman', 'rmi', '-f', image_name])
 } // Closes function definition
 
+def cleanupRegistryPort() {
+    sh '''
+        podman rm -f $(podman ps -aq --filter 'name=k8s_registry_') 2>/dev/null || true
+        sudo podman rm -f $(sudo podman ps -aq --filter 'name=k8s_registry_') 2>/dev/null || true
+        if command -v fuser >/dev/null 2>&1; then
+            sudo fuser -k 5000/tcp 2>/dev/null || true
+        fi
+        sleep 1
+    '''
+} // Closes function definition
+
 def startRegistry(tag) {
-    sh "mkdir -p \$(pwd)/docker_registry"
-    sh "sudo chown -R iguazio:iguazio \$(pwd)/docker_registry"
-    sh "chmod 0777 \$(pwd)/docker_registry"
-    sh 'podman rm -f $(podman ps -q --filter "name=k8s_registry_*") || true'
-    sh "podman run --net=host -d -u 1000:1000 -v \$(pwd)/docker_registry:/var/lib/registry --name k8s_registry_${tag} registry:latest"
+    // Rootless podman --net=host does not share the host loopback with the builder
+    // container. Use rootful podman on real :5000. Stale rootless k8s_registry_*
+    // containers from prior builds also bind :5000 and steal pushes while the sudo
+    // container stays empty (catalog looks full, docker_registry is not).
+    cleanupRegistryPort()
+    sh """
+        rm -rf docker_registry && mkdir -p docker_registry
+        sudo podman run --network=host -d \\
+            -e REGISTRY_HTTP_ADDR=0.0.0.0:5000 \\
+            -v \$(pwd)/docker_registry:/var/lib/registry:Z \\
+            --name k8s_registry_${tag} \\
+            registry:2
+        for i in \$(seq 1 30); do
+            curl -sf http://127.0.0.1:5000/v2/ >/dev/null && break
+            sleep 1
+        done
+        curl -sf http://127.0.0.1:5000/v2/ || { echo 'ERROR: registry not reachable on :5000'; exit 1; }
+        if curl -sf http://127.0.0.1:5000/v2/_catalog | grep -q calico; then
+            echo 'ERROR: registry catalog not empty at start; stale :5000 listener still active'
+            curl -sf http://127.0.0.1:5000/v2/_catalog || true
+            sudo podman ps -a || true
+            podman ps -a || true
+            exit 1
+        fi
+        echo "Registry started clean on :5000 (k8s_registry_${tag})"
+    """
 } // Closes function definition
 
 def stopRegistry(tag) {
-  sh "podman rm -f k8s_registry_${tag}"
+    sh """
+        curl -sf http://127.0.0.1:5000/v2/_catalog || echo 'WARN: could not read registry catalog'
+        sudo podman exec k8s_registry_${tag} du -sh /var/lib/registry || true
+        du -sh ./docker_registry || true
+        sudo podman rm -f k8s_registry_${tag} || true
+        sudo chown -R iguazio:iguazio ./docker_registry
+    """
 } // Closes function definition
 
 def config = common.get_config()
@@ -73,6 +111,11 @@ common.main {
             stage('merge assets and build ansible container') {
                 dir('./') {
 		            stopRegistry(env.kubespray_hash)
+                    sh('''if [ "$(find docker_registry -mindepth 1 -print -quit 2>/dev/null | wc -l)" -eq 0 ]; then
+                        echo "ERROR: docker_registry is empty after offline build; image pushes did not persist"
+                        exit 1
+                    fi
+                    echo "docker_registry size: $(du -sh docker_registry)"''')
                     sh("echo 'So here we are'")
                     sh("ls -la")
 		            sh('sudo chown -R 1000:1000 rocky8_outputs')
